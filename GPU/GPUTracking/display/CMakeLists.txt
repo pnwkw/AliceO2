@@ -46,6 +46,7 @@ endif()
 
 set(SRCS ../utils/qsem.cxx
          GPUDisplay.cxx
+         GPUDisplayMagneticField.cxx
          GPUDisplayFrontend.cxx
          GPUDisplayBackend.cxx
          GPUDisplayBackendOpenGL.cxx
@@ -120,6 +121,14 @@ if(ALIGPU_BUILD_TYPE STREQUAL "O2")
   target_compile_definitions(${targetName} PRIVATE GPUCA_BUILD_EVENT_DISPLAY_GLFW GPUCA_DISPLAY_GL3W GPUCA_DISPLAY_OPENGL_CORE)
   
   install(FILES ${HDRS} ${HDRS_INSTALL} DESTINATION include/GPU)
+
+  o2_add_executable(field-uniform-exporter
+          TARGETVARNAME exporterName
+          COMPONENT_NAME gpu
+          PUBLIC_LINK_LIBRARIES O2::Field O2::GPUTracking Boost::program_options
+          SOURCES tools/field-uniform-exporter.cxx GPUDisplayMagneticField.cxx)
+
+  target_compile_definitions(${exporterName} PRIVATE $<TARGET_PROPERTY:O2::GPUTracking,COMPILE_DEFINITIONS>)
 endif()
 
 if(ALIGPU_BUILD_TYPE STREQUAL "Standalone")

@@ -24,6 +24,7 @@
 #endif
 
 #include "GPUCommonDef.h"
+#include "GPUDisplayMagneticField.h"
 #include "GPUDisplayBackendOpenGL.h"
 #include "GPUDisplayShaders.h"
 #include "GPUDisplay.h"
@@ -285,8 +286,27 @@ static int checkShaderStatus(unsigned int shader)
   return 0;
 }
 
+static int checkProgramStatus(unsigned int program)
+{
+  int status, loglen;
+  glGetProgramiv(program, GL_LINK_STATUS, &status);
+  if (!status) {
+    printf("failed to link program\n");
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &loglen);
+    std::vector<char> buf(loglen + 1);
+    glGetProgramInfoLog(program, loglen, nullptr, buf.data());
+    buf[loglen] = 0;
+    printf("%s\n", buf.data());
+    return 1;
+  }
+  return 0;
+}
+
 int GPUDisplayBackendOpenGL::InitBackendA()
 {
+  auto renderer = glGetString(GL_RENDERER);
+  GPUInfo("Renderer: %s", renderer);
+
   int glVersion[2] = {0, 0};
   glGetIntegerv(GL_MAJOR_VERSION, &glVersion[0]);
   glGetIntegerv(GL_MINOR_VERSION, &glVersion[1]);
@@ -338,6 +358,9 @@ int GPUDisplayBackendOpenGL::InitBackendA()
   CHKERR(glAttachShader(mShaderProgram, mVertexShader));
   CHKERR(glAttachShader(mShaderProgram, mFragmentShader));
   CHKERR(glLinkProgram(mShaderProgram));
+  if (checkProgramStatus(mShaderProgram)) {
+    return 1;
+  }
   if (mSPIRVShaders) {
     CHKERR(glGenBuffers(1, &mSPIRVModelViewBuffer));
     CHKERR(glGenBuffers(1, &mSPIRVColorBuffer));
@@ -349,12 +372,18 @@ int GPUDisplayBackendOpenGL::InitBackendA()
   CHKERR(glAttachShader(mShaderProgramText, mVertexShaderTexture));
   CHKERR(glAttachShader(mShaderProgramText, mFragmentShaderText));
   CHKERR(glLinkProgram(mShaderProgramText));
+  if (checkProgramStatus(mShaderProgramText)) {
+    return 1;
+  }
   CHKERR(mModelViewProjIdText = glGetUniformLocation(mShaderProgramText, "projection"));
   CHKERR(mColorIdText = glGetUniformLocation(mShaderProgramText, "textColor"));
   CHKERR(mShaderProgramTexture = glCreateProgram());
   CHKERR(glAttachShader(mShaderProgramTexture, mVertexShaderTexture));
   CHKERR(glAttachShader(mShaderProgramTexture, mFragmentShaderTexture));
   CHKERR(glLinkProgram(mShaderProgramTexture));
+  if (checkProgramStatus(mShaderProgramTexture)) {
+    return 1;
+  }
   CHKERR(mModelViewProjIdTexture = glGetUniformLocation(mShaderProgramTexture, "projection"));
   CHKERR(mAlphaIdTexture = glGetUniformLocation(mShaderProgramTexture, "alpha"));
   CHKERR(glGenVertexArrays(1, &mVertexArray));
@@ -369,7 +398,88 @@ int GPUDisplayBackendOpenGL::InitBackendA()
   CHKERR(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
   CHKERR(glBindVertexArray(0));
-  return (0); // Initialization Went OK
+  return 0;
+}
+
+int GPUDisplayBackendOpenGL::InitMagField()
+{
+  mMagneticField = std::make_unique<GPUDisplayMagneticField>();
+  mMagneticField->generateSeedPoints(mDisplay->cfgL().linesCount);
+
+  CHKERR(mVertexShaderPassthrough = glCreateShader(GL_VERTEX_SHADER));
+  CHKERR(mGeometryShader = glCreateShader(GL_GEOMETRY_SHADER));
+
+  CHKERR(glShaderSource(mVertexShaderPassthrough, 1, &GPUDisplayShaders::vertexShaderPassthrough, nullptr));
+  CHKERR(glCompileShader(mVertexShaderPassthrough));
+
+  const auto constantsExpanded = fmt::format(GPUDisplayShaders::fieldModelShaderConstants,
+                                                fmt::arg("dimensions", GPUDisplayMagneticField::DIMENSIONS),
+                                                fmt::arg("solZSegs", GPUDisplayMagneticField::MAX_SOLENOID_Z_SEGMENTS),
+                                                fmt::arg("solPSegs", GPUDisplayMagneticField::MAX_SOLENOID_P_SEGMENTS),
+                                                fmt::arg("solRSegs", GPUDisplayMagneticField::MAX_SOLENOID_R_SEGMENTS),
+                                                fmt::arg("solParams", GPUDisplayMagneticField::MAX_SOLENOID_PARAMETERIZATIONS),
+                                                fmt::arg("solRows", GPUDisplayMagneticField::MAX_SOLENOID_ROWS),
+                                                fmt::arg("solColumns", GPUDisplayMagneticField::MAX_SOLENOID_COLUMNS),
+                                                fmt::arg("solCoeffs", GPUDisplayMagneticField::MAX_SOLENOID_COEFFICIENTS),
+                                                fmt::arg("dipZSegs", GPUDisplayMagneticField::MAX_DIPOLE_Z_SEGMENTS),
+                                                fmt::arg("dipYSegs", GPUDisplayMagneticField::MAX_DIPOLE_Y_SEGMENTS),
+                                                fmt::arg("dipXSegs", GPUDisplayMagneticField::MAX_DIPOLE_X_SEGMENTS),
+                                                fmt::arg("dipParams", GPUDisplayMagneticField::MAX_DIPOLE_PARAMETERIZATIONS),
+                                                fmt::arg("dipRows", GPUDisplayMagneticField::MAX_DIPOLE_ROWS),
+                                                fmt::arg("dipColumns", GPUDisplayMagneticField::MAX_DIPOLE_COLUMNS),
+                                                fmt::arg("dipCoeffs", GPUDisplayMagneticField::MAX_DIPOLE_COEFFICIENTS),
+                                                fmt::arg("maxChebOrder", GPUDisplayMagneticField::MAX_CHEBYSHEV_ORDER));
+
+  std::array geomShaderSource = { GPUDisplayShaders::geometryShaderP1, constantsExpanded.c_str(), GPUDisplayShaders::fieldModelShaderCode, GPUDisplayShaders::geometryShaderP2 };
+
+  CHKERR(glShaderSource(mGeometryShader, geomShaderSource.size(), geomShaderSource.data(), nullptr));
+  CHKERR(glCompileShader(mGeometryShader));
+
+  if (checkShaderStatus(mVertexShaderPassthrough) || checkShaderStatus(mGeometryShader)) {
+    return 1;
+  }
+
+  CHKERR(mShaderProgramField = glCreateProgram());
+  CHKERR(glAttachShader(mShaderProgramField, mVertexShaderPassthrough));
+  CHKERR(glAttachShader(mShaderProgramField, mGeometryShader));
+  CHKERR(glAttachShader(mShaderProgramField, mFragmentShader));
+  CHKERR(glLinkProgram(mShaderProgramField));
+
+  if (checkProgramStatus(mShaderProgramField)) {
+    return 1;
+  }
+
+  const auto ATTRIB_ZERO = 0;
+  const auto BUFFER_IDX = 0;
+
+  CHKERR(glCreateVertexArrays(1, &VAO_field));
+  CHKERR(glEnableVertexArrayAttrib(VAO_field, ATTRIB_ZERO));
+  CHKERR(glVertexArrayAttribFormat(VAO_field, ATTRIB_ZERO, 3, GL_FLOAT, GL_FALSE, 0));
+
+  CHKERR(glCreateBuffers(1, &VBO_field));
+  CHKERR(glNamedBufferData(VBO_field, mMagneticField->mFieldLineSeedPoints.size() * sizeof(GPUDisplayMagneticField::vtx), mMagneticField->mFieldLineSeedPoints.data(), GL_STATIC_DRAW));
+
+  CHKERR(glVertexArrayVertexBuffer(VAO_field, BUFFER_IDX, VBO_field, 0, sizeof(GPUDisplayMagneticField::vtx)));
+
+  CHKERR(glVertexArrayAttribBinding(VAO_field, ATTRIB_ZERO, BUFFER_IDX));
+
+  CHKERR(glCreateBuffers(1, &mFieldModelViewBuffer));
+  CHKERR(glNamedBufferData(mFieldModelViewBuffer, sizeof(hmm_mat4), nullptr, GL_STREAM_DRAW));
+
+  CHKERR(glCreateBuffers(1, &mFieldModelConstantsBuffer));
+  CHKERR(glNamedBufferData(mFieldModelConstantsBuffer, sizeof(GPUDisplayMagneticField::RenderConstantsUniform), mMagneticField->mRenderConstantsUniform.get(), GL_STREAM_DRAW));
+
+  CHKERR(glCreateBuffers(1, &mSolenoidSegmentsBuffer));
+  CHKERR(glNamedBufferData(mSolenoidSegmentsBuffer, sizeof(GPUDisplayMagneticField::SolenoidSegmentsUniform), mMagneticField->mSolenoidSegments.get(), GL_STREAM_DRAW));
+  CHKERR(glCreateBuffers(1, &mSolenoidParameterizationBuffer));
+  CHKERR(glNamedBufferData(mSolenoidParameterizationBuffer, sizeof(GPUDisplayMagneticField::SolenoidParameterizationUniform), mMagneticField->mSolenoidParameterization.get(), GL_STREAM_DRAW));
+
+  CHKERR(glCreateBuffers(1, &mDipoleSegmentsBuffer));
+  CHKERR(glNamedBufferData(mDipoleSegmentsBuffer, sizeof(GPUDisplayMagneticField::DipoleSegmentsUniform), mMagneticField->mDipoleSegments.get(), GL_STREAM_DRAW));
+  CHKERR(glCreateBuffers(1, &mDipoleParameterizationBuffer));
+  CHKERR(glNamedBufferData(mDipoleParameterizationBuffer, sizeof(GPUDisplayMagneticField::DipoleParameterizationUniform), mMagneticField->mDipoleParameterization.get(), GL_STREAM_DRAW));
+
+  return 0;
 }
 
 void GPUDisplayBackendOpenGL::ExitBackendA()
@@ -402,6 +512,60 @@ void GPUDisplayBackendOpenGL::ExitBackendA()
     CHKERR(glDeleteBuffers(1, &mSPIRVModelViewBuffer));
     CHKERR(glDeleteBuffers(1, &mSPIRVColorBuffer));
   }
+  if (mMagneticField) {
+    ExitMagField();
+  }
+}
+
+unsigned int GPUDisplayBackendOpenGL::drawField()
+{
+  if (!mMagneticField) {
+    InitMagField();
+  }
+
+  if (mMagneticField->mFieldLineSeedPoints.size() != mDisplay->cfgL().linesCount) {
+    mMagneticField->generateSeedPoints(mDisplay->cfgL().linesCount);
+    CHKERR(glNamedBufferData(VBO_field, mMagneticField->mFieldLineSeedPoints.size() * sizeof(GPUDisplayMagneticField::vtx), mMagneticField->mFieldLineSeedPoints.data(), GL_STATIC_DRAW));
+  }
+
+  mMagneticField->mRenderConstantsUniform->StepSize = mDisplay->cfgL().stepSize;
+  mMagneticField->mRenderConstantsUniform->StepCount = mDisplay->cfgL().stepCount;
+  CHKERR(glNamedBufferSubData(mFieldModelConstantsBuffer, 0, sizeof(GPUDisplayMagneticField::RenderConstantsUniform), mMagneticField->mRenderConstantsUniform.get()));
+
+  CHKERR(glBindVertexArray(VAO_field));
+  CHKERR(glUseProgram(mShaderProgramField));
+  CHKERR(glBindBufferBase(GL_UNIFORM_BUFFER, 0, mFieldModelViewBuffer));
+  const std::array<float, 4> drawColor = {1.f, 0.f, 0.f, 1.f};
+  const auto color = glGetUniformLocation(mShaderProgramField, "color");
+  CHKERR(glUniform4fv(color, 1, drawColor.data()));
+
+  CHKERR(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mFieldModelConstantsBuffer));
+  CHKERR(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mSolenoidSegmentsBuffer));
+  CHKERR(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mDipoleSegmentsBuffer));
+  CHKERR(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, mSolenoidParameterizationBuffer));
+  CHKERR(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, mDipoleParameterizationBuffer));
+
+  CHKERR(glDrawArrays(GL_POINTS, 0, mMagneticField->mFieldLineSeedPoints.size()));
+
+  CHKERR(glUseProgram(0));
+  CHKERR(glBindVertexArray(0));
+
+  return 0;
+}
+
+void GPUDisplayBackendOpenGL::ExitMagField()
+{
+  CHKERR(glDeleteBuffers(1, &mFieldModelViewBuffer));
+  CHKERR(glDeleteBuffers(1, &mFieldModelConstantsBuffer));
+  CHKERR(glDeleteBuffers(1, &mSolenoidSegmentsBuffer));
+  CHKERR(glDeleteBuffers(1, &mSolenoidParameterizationBuffer));
+  CHKERR(glDeleteBuffers(1, &mDipoleSegmentsBuffer));
+  CHKERR(glDeleteBuffers(1, &mDipoleParameterizationBuffer));
+  CHKERR(glDeleteProgram(mShaderProgramField));
+  CHKERR(glDeleteShader(mGeometryShader));
+  CHKERR(glDeleteShader(mVertexShaderPassthrough));
+  CHKERR(glDeleteBuffers(1, &VBO_field));
+  CHKERR(glDeleteVertexArrays(1, &VAO_field));
 }
 
 void GPUDisplayBackendOpenGL::clearScreen(bool alphaOnly)
@@ -499,6 +663,9 @@ void GPUDisplayBackendOpenGL::prepareDraw(const hmm_mat4& proj, const hmm_mat4& 
     } else {
       CHKERR(glUniformMatrix4fv(mModelViewProjId, 1, GL_FALSE, &modelViewProj.Elements[0][0]));
     }
+    if (mMagneticField) {
+      CHKERR(glNamedBufferSubData(mFieldModelViewBuffer, 0, sizeof(modelViewProj), &modelViewProj));
+    }
   }
 }
 
@@ -510,7 +677,7 @@ void GPUDisplayBackendOpenGL::finishDraw(bool doScreenshot, bool toMixBuffer, fl
   } else
 #endif
   {
-    CHKERR(glDisableVertexAttribArray(0));
+    CHKERR(glBindVertexArray(0));
     CHKERR(glUseProgram(0));
   }
 
