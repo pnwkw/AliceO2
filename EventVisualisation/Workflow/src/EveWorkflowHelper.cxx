@@ -618,7 +618,7 @@ void EveWorkflowHelper::drawMCH(GID gid, float trackTime)
   const auto dZ = (endZ - startZ) / nSteps;
 
   for (std::size_t i = 0; i < nSteps; ++i) {
-    const auto z = startZ + i*dZ;
+    const auto z = startZ + i * dZ;
     vTrack->addPolyPoint(trackParam.getNonBendingCoor(), trackParam.getBendingCoor(), z);
     mch::TrackExtrap::extrapToZCov(trackParam, z);
   }
