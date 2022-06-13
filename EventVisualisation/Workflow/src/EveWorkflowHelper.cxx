@@ -52,8 +52,7 @@ const std::unordered_map<GID::Source, EveWorkflowHelper::PropagationRange> EveWo
   {GID::ITSTPCTRD, {EveWorkflowHelper::prITS.minR, EveWorkflowHelper::prTRD.maxR, EveWorkflowHelper::prTRD.minZ, EveWorkflowHelper::prTRD.maxZ}},
   {GID::ITSTPCTOF, {EveWorkflowHelper::prITS.minR, EveWorkflowHelper::prTOF.maxR, EveWorkflowHelper::prTOF.minZ, EveWorkflowHelper::prTOF.maxZ}},
   {GID::TPCTRDTOF, {EveWorkflowHelper::prTPC.minR, EveWorkflowHelper::prTOF.maxR, EveWorkflowHelper::prTOF.minZ, EveWorkflowHelper::prTOF.maxZ}},
-  {GID::ITSTPCTRDTOF, {EveWorkflowHelper::prITS.minR, EveWorkflowHelper::prTOF.maxR, EveWorkflowHelper::prTOF.minZ, EveWorkflowHelper::prTOF.maxZ}}
-};
+  {GID::ITSTPCTRDTOF, {EveWorkflowHelper::prITS.minR, EveWorkflowHelper::prTOF.maxR, EveWorkflowHelper::prTOF.minZ, EveWorkflowHelper::prTOF.maxZ}}};
 
 void EveWorkflowHelper::selectTracks(const CalibObjectsConst* calib,
                                      GID::mask_t maskCl, GID::mask_t maskTrk, GID::mask_t maskMatch, bool trackSorting)
