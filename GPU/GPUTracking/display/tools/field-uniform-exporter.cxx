@@ -23,63 +23,64 @@
 namespace bpo = boost::program_options;
 using namespace GPUCA_NAMESPACE::gpu;
 
-template<std::size_t MAX_DIM1_SEGMENTS, std::size_t MAX_DIM2_SEGMENTS, std::size_t MAX_DIM3_SEGMENTS>
-void saveSegments(std::ofstream &file, int NSegDim1, int NSegDim2, int NSegDim3, GPUDisplayMagneticField::SegmentsUniform<MAX_DIM1_SEGMENTS, MAX_DIM2_SEGMENTS, MAX_DIM3_SEGMENTS> &segments)
+template <std::size_t MAX_DIM1_SEGMENTS, std::size_t MAX_DIM2_SEGMENTS, std::size_t MAX_DIM3_SEGMENTS>
+void saveSegments(std::ofstream& file, int NSegDim1, int NSegDim2, int NSegDim3, GPUDisplayMagneticField::SegmentsUniform<MAX_DIM1_SEGMENTS, MAX_DIM2_SEGMENTS, MAX_DIM3_SEGMENTS>& segments)
 {
-  file.write(reinterpret_cast<char *>(&segments.MinZ), sizeof(segments.MinZ));
-  file.write(reinterpret_cast<char *>(&segments.MaxZ), sizeof(segments.MaxZ));
-  file.write(reinterpret_cast<char *>(&segments.MultiplicativeFactor), sizeof(segments.MultiplicativeFactor));
+  file.write(reinterpret_cast<char*>(&segments.MinZ), sizeof(segments.MinZ));
+  file.write(reinterpret_cast<char*>(&segments.MaxZ), sizeof(segments.MaxZ));
+  file.write(reinterpret_cast<char*>(&segments.MultiplicativeFactor), sizeof(segments.MultiplicativeFactor));
 
-  file.write(reinterpret_cast<char *>(&NSegDim1), sizeof(std::int32_t));
+  file.write(reinterpret_cast<char*>(&NSegDim1), sizeof(std::int32_t));
 
-  file.write(reinterpret_cast<char *>(segments.SegDim1), NSegDim1 * sizeof(segments.SegDim1[0]));
+  file.write(reinterpret_cast<char*>(segments.SegDim1), NSegDim1 * sizeof(segments.SegDim1[0]));
 
-  file.write(reinterpret_cast<char *>(segments.BegSegDim2), NSegDim1 * sizeof(segments.BegSegDim2[0]));
-  file.write(reinterpret_cast<char *>(segments.NSegDim2), NSegDim1 * sizeof(segments.NSegDim2[0]));
+  file.write(reinterpret_cast<char*>(segments.BegSegDim2), NSegDim1 * sizeof(segments.BegSegDim2[0]));
+  file.write(reinterpret_cast<char*>(segments.NSegDim2), NSegDim1 * sizeof(segments.NSegDim2[0]));
 
-  file.write(reinterpret_cast<char *>(&NSegDim2), sizeof(std::int32_t));
+  file.write(reinterpret_cast<char*>(&NSegDim2), sizeof(std::int32_t));
 
-  file.write(reinterpret_cast<char *>(segments.SegDim2), NSegDim2 * sizeof(segments.SegDim2[0]));
+  file.write(reinterpret_cast<char*>(segments.SegDim2), NSegDim2 * sizeof(segments.SegDim2[0]));
 
-  file.write(reinterpret_cast<char *>(segments.BegSegDim3), NSegDim2 * sizeof(segments.BegSegDim3[0]));
-  file.write(reinterpret_cast<char *>(segments.NSegDim3), NSegDim2 * sizeof(segments.NSegDim3[0]));
+  file.write(reinterpret_cast<char*>(segments.BegSegDim3), NSegDim2 * sizeof(segments.BegSegDim3[0]));
+  file.write(reinterpret_cast<char*>(segments.NSegDim3), NSegDim2 * sizeof(segments.NSegDim3[0]));
 
-  file.write(reinterpret_cast<char *>(&NSegDim3), sizeof(std::int32_t));
+  file.write(reinterpret_cast<char*>(&NSegDim3), sizeof(std::int32_t));
 
-  file.write(reinterpret_cast<char *>(segments.SegDim3), NSegDim3 * sizeof(segments.SegDim3[0]));
-  file.write(reinterpret_cast<char *>(segments.SegID), NSegDim3 * sizeof(segments.SegID[0]));
+  file.write(reinterpret_cast<char*>(segments.SegDim3), NSegDim3 * sizeof(segments.SegDim3[0]));
+  file.write(reinterpret_cast<char*>(segments.SegID), NSegDim3 * sizeof(segments.SegID[0]));
 }
 
 template <std::size_t DIMENSIONS, std::size_t MAX_PARAMETERIZATIONS, std::size_t MAX_ROWS, std::size_t MAX_COLUMNS, std::size_t MAX_COEFFICIENTS>
-void saveParams(std::ofstream &file, int numberOfParametrization, int Nrows, int Ncolums, int Ncoeffs, GPUDisplayMagneticField::ParametrizationUniform<MAX_PARAMETERIZATIONS, MAX_ROWS, MAX_COLUMNS, MAX_COEFFICIENTS> &param)
+void saveParams(std::ofstream& file, int numberOfParametrization, int Nrows, int Ncolums, int Ncoeffs, GPUDisplayMagneticField::ParametrizationUniform<MAX_PARAMETERIZATIONS, MAX_ROWS, MAX_COLUMNS, MAX_COEFFICIENTS>& param)
 {
-  file.write(reinterpret_cast<char *>(&numberOfParametrization), sizeof(std::int32_t));
+  file.write(reinterpret_cast<char*>(&numberOfParametrization), sizeof(std::int32_t));
 
-  file.write(reinterpret_cast<char *>(param.BOffsets), DIMENSIONS * numberOfParametrization * sizeof(float));
-  file.write(reinterpret_cast<char *>(param.BScales), DIMENSIONS * numberOfParametrization * sizeof(float));
-  file.write(reinterpret_cast<char *>(param.BMin), DIMENSIONS * numberOfParametrization * sizeof(float));
-  file.write(reinterpret_cast<char *>(param.BMax), DIMENSIONS * numberOfParametrization * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.BOffsets), DIMENSIONS * numberOfParametrization * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.BScales), DIMENSIONS * numberOfParametrization * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.BMin), DIMENSIONS * numberOfParametrization * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.BMax), DIMENSIONS * numberOfParametrization * sizeof(float));
 
-  file.write(reinterpret_cast<char *>(param.NRows), DIMENSIONS * numberOfParametrization * sizeof(float));
-  file.write(reinterpret_cast<char *>(param.ColsAtRowOffset), DIMENSIONS * numberOfParametrization * sizeof(float));
-  file.write(reinterpret_cast<char *>(param.CofsAtRowOffset), DIMENSIONS * numberOfParametrization * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.NRows), DIMENSIONS * numberOfParametrization * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.ColsAtRowOffset), DIMENSIONS * numberOfParametrization * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.CofsAtRowOffset), DIMENSIONS * numberOfParametrization * sizeof(float));
 
-  file.write(reinterpret_cast<char *>(&Nrows), sizeof(std::int32_t));
+  file.write(reinterpret_cast<char*>(&Nrows), sizeof(std::int32_t));
 
-  file.write(reinterpret_cast<char *>(param.NColsAtRow), Nrows * sizeof(int));
-  file.write(reinterpret_cast<char *>(param.CofsAtColOffset), Nrows * sizeof(int));
+  file.write(reinterpret_cast<char*>(param.NColsAtRow), Nrows * sizeof(int));
+  file.write(reinterpret_cast<char*>(param.CofsAtColOffset), Nrows * sizeof(int));
 
-  file.write(reinterpret_cast<char *>(&Ncolums), sizeof(int));
+  file.write(reinterpret_cast<char*>(&Ncolums), sizeof(int));
 
-  file.write(reinterpret_cast<char *>(param.NCofsAtCol), Ncolums * sizeof(int));
-  file.write(reinterpret_cast<char *>(param.AtColCoefOffset), Ncolums * sizeof(int));
+  file.write(reinterpret_cast<char*>(param.NCofsAtCol), Ncolums * sizeof(int));
+  file.write(reinterpret_cast<char*>(param.AtColCoefOffset), Ncolums * sizeof(int));
 
-  file.write(reinterpret_cast<char *>(&Ncoeffs), sizeof(int));
+  file.write(reinterpret_cast<char*>(&Ncoeffs), sizeof(int));
 
-  file.write(reinterpret_cast<char *>(param.Coeffs), Ncoeffs * sizeof(float));
+  file.write(reinterpret_cast<char*>(param.Coeffs), Ncoeffs * sizeof(float));
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
   bpo::options_description options("Field Uniform exporter options");
 
   float l3Cur, diCur, beamenergy;
@@ -129,8 +130,8 @@ int main(int argc, char** argv) {
 
   saveSegments(file, gpufield->mSolSegDim1, gpufield->mSolSegDim2, gpufield->mSolSegDim3, *gpufield->mSolenoidSegments);
   saveSegments(file, gpufield->mDipSegDim1, gpufield->mDipSegDim2, gpufield->mDipSegDim3, *gpufield->mDipoleSegments);
-  saveParams<o2::gpu::GPUDisplayMagneticField::DIMENSIONS>(file, gpufield->mSolParametrizations, gpufield->mSolRows, gpufield->mSolColumns, gpufield->mSolCoefficients,*gpufield->mSolenoidParameterization);
-  saveParams<o2::gpu::GPUDisplayMagneticField::DIMENSIONS>(file, gpufield->mDipParametrizations, gpufield->mDipRows, gpufield->mDipColumns, gpufield->mDipCoefficients,*gpufield->mDipoleParameterization);
+  saveParams<o2::gpu::GPUDisplayMagneticField::DIMENSIONS>(file, gpufield->mSolParametrizations, gpufield->mSolRows, gpufield->mSolColumns, gpufield->mSolCoefficients, *gpufield->mSolenoidParameterization);
+  saveParams<o2::gpu::GPUDisplayMagneticField::DIMENSIONS>(file, gpufield->mDipParametrizations, gpufield->mDipRows, gpufield->mDipColumns, gpufield->mDipCoefficients, *gpufield->mDipoleParameterization);
 
   file.close();
 

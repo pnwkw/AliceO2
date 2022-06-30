@@ -30,7 +30,7 @@ GPUDisplayMagneticField::GPUDisplayMagneticField()
 }
 
 #ifdef GPUCA_HAVE_O2HEADERS
-GPUDisplayMagneticField::GPUDisplayMagneticField(o2::field::MagneticField *field)
+GPUDisplayMagneticField::GPUDisplayMagneticField(o2::field::MagneticField* field)
 {
   initializeUniformsFromField(field);
 }
@@ -50,74 +50,74 @@ void GPUDisplayMagneticField::generateSeedPoints(std::size_t count)
   }
 }
 
-template<std::size_t MAX_DIM1_SEGMENTS, std::size_t MAX_DIM2_SEGMENTS, std::size_t MAX_DIM3_SEGMENTS>
-std::tuple<std::size_t, std::size_t, std::size_t> loadSegments(std::ifstream &file, GPUDisplayMagneticField::SegmentsUniform<MAX_DIM1_SEGMENTS, MAX_DIM2_SEGMENTS, MAX_DIM3_SEGMENTS> &segments)
+template <std::size_t MAX_DIM1_SEGMENTS, std::size_t MAX_DIM2_SEGMENTS, std::size_t MAX_DIM3_SEGMENTS>
+std::tuple<std::size_t, std::size_t, std::size_t> loadSegments(std::ifstream& file, GPUDisplayMagneticField::SegmentsUniform<MAX_DIM1_SEGMENTS, MAX_DIM2_SEGMENTS, MAX_DIM3_SEGMENTS>& segments)
 {
-  file.read(reinterpret_cast<char *>(&segments.MinZ), sizeof(segments.MinZ));
-  file.read(reinterpret_cast<char *>(&segments.MaxZ), sizeof(segments.MaxZ));
-  file.read(reinterpret_cast<char *>(&segments.MultiplicativeFactor), sizeof(segments.MultiplicativeFactor));
+  file.read(reinterpret_cast<char*>(&segments.MinZ), sizeof(segments.MinZ));
+  file.read(reinterpret_cast<char*>(&segments.MaxZ), sizeof(segments.MaxZ));
+  file.read(reinterpret_cast<char*>(&segments.MultiplicativeFactor), sizeof(segments.MultiplicativeFactor));
 
   std::int32_t NSegDim1, NSegDim2, NSegDim3;
 
-  file.read(reinterpret_cast<char *>(&NSegDim1), sizeof(std::int32_t));
+  file.read(reinterpret_cast<char*>(&NSegDim1), sizeof(std::int32_t));
   assert(NSegDim1 <= MAX_DIM1_SEGMENTS);
 
   segments.ZSegments = NSegDim1;
 
-  file.read(reinterpret_cast<char *>(segments.SegDim1), NSegDim1 * sizeof(segments.SegDim1[0]));
+  file.read(reinterpret_cast<char*>(segments.SegDim1), NSegDim1 * sizeof(segments.SegDim1[0]));
 
-  file.read(reinterpret_cast<char *>(segments.BegSegDim2), NSegDim1 * sizeof(segments.BegSegDim2[0]));
-  file.read(reinterpret_cast<char *>(segments.NSegDim2), NSegDim1 * sizeof(segments.NSegDim2[0]));
+  file.read(reinterpret_cast<char*>(segments.BegSegDim2), NSegDim1 * sizeof(segments.BegSegDim2[0]));
+  file.read(reinterpret_cast<char*>(segments.NSegDim2), NSegDim1 * sizeof(segments.NSegDim2[0]));
 
-  file.read(reinterpret_cast<char *>(&NSegDim2), sizeof(std::int32_t));
+  file.read(reinterpret_cast<char*>(&NSegDim2), sizeof(std::int32_t));
   assert(NSegDim2 <= MAX_DIM2_SEGMENTS);
 
-  file.read(reinterpret_cast<char *>(segments.SegDim2), NSegDim2 * sizeof(segments.SegDim2[0]));
+  file.read(reinterpret_cast<char*>(segments.SegDim2), NSegDim2 * sizeof(segments.SegDim2[0]));
 
-  file.read(reinterpret_cast<char *>(segments.BegSegDim3), NSegDim2 * sizeof(segments.BegSegDim3[0]));
-  file.read(reinterpret_cast<char *>(segments.NSegDim3), NSegDim2 * sizeof(segments.NSegDim3[0]));
+  file.read(reinterpret_cast<char*>(segments.BegSegDim3), NSegDim2 * sizeof(segments.BegSegDim3[0]));
+  file.read(reinterpret_cast<char*>(segments.NSegDim3), NSegDim2 * sizeof(segments.NSegDim3[0]));
 
-  file.read(reinterpret_cast<char *>(&NSegDim3), sizeof(std::int32_t));
+  file.read(reinterpret_cast<char*>(&NSegDim3), sizeof(std::int32_t));
   assert(NSegDim3 <= MAX_DIM3_SEGMENTS);
 
-  file.read(reinterpret_cast<char *>(segments.SegDim3), NSegDim3 * sizeof(segments.SegDim3[0]));
-  file.read(reinterpret_cast<char *>(segments.SegID), NSegDim3 * sizeof(segments.SegID[0]));
+  file.read(reinterpret_cast<char*>(segments.SegDim3), NSegDim3 * sizeof(segments.SegDim3[0]));
+  file.read(reinterpret_cast<char*>(segments.SegID), NSegDim3 * sizeof(segments.SegID[0]));
 
   return std::make_tuple(NSegDim1, NSegDim2, NSegDim3);
 }
 
 template <std::size_t DIMENSIONS, std::size_t MAX_PARAMETERIZATIONS, std::size_t MAX_ROWS, std::size_t MAX_COLUMNS, std::size_t MAX_COEFFICIENTS>
-std::tuple<std::size_t, std::size_t, std::size_t, std::size_t> loadParams(std::ifstream &file, GPUDisplayMagneticField::ParametrizationUniform<MAX_PARAMETERIZATIONS, MAX_ROWS, MAX_COLUMNS, MAX_COEFFICIENTS> &parametrizations)
+std::tuple<std::size_t, std::size_t, std::size_t, std::size_t> loadParams(std::ifstream& file, GPUDisplayMagneticField::ParametrizationUniform<MAX_PARAMETERIZATIONS, MAX_ROWS, MAX_COLUMNS, MAX_COEFFICIENTS>& parametrizations)
 {
   std::int32_t NParams, NRows, NColumns, NCoefficients;
-  file.read(reinterpret_cast<char *>(&NParams), sizeof(std::int32_t));
+  file.read(reinterpret_cast<char*>(&NParams), sizeof(std::int32_t));
   assert(NParams <= (MAX_PARAMETERIZATIONS / DIMENSIONS));
 
-  file.read(reinterpret_cast<char *>(parametrizations.BOffsets), DIMENSIONS * NParams * sizeof(parametrizations.BOffsets[0]));
-  file.read(reinterpret_cast<char *>(parametrizations.BScales), DIMENSIONS * NParams * sizeof(parametrizations.BScales[0]));
-  file.read(reinterpret_cast<char *>(parametrizations.BMin), DIMENSIONS * NParams * sizeof(parametrizations.BMin[0]));
-  file.read(reinterpret_cast<char *>(parametrizations.BMax), DIMENSIONS * NParams * sizeof(parametrizations.BMax[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.BOffsets), DIMENSIONS * NParams * sizeof(parametrizations.BOffsets[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.BScales), DIMENSIONS * NParams * sizeof(parametrizations.BScales[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.BMin), DIMENSIONS * NParams * sizeof(parametrizations.BMin[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.BMax), DIMENSIONS * NParams * sizeof(parametrizations.BMax[0]));
 
-  file.read(reinterpret_cast<char *>(parametrizations.NRows), DIMENSIONS * NParams * sizeof(parametrizations.NRows[0]));
-  file.read(reinterpret_cast<char *>(parametrizations.ColsAtRowOffset), DIMENSIONS * NParams * sizeof(parametrizations.ColsAtRowOffset[0]));
-  file.read(reinterpret_cast<char *>(parametrizations.CofsAtRowOffset), DIMENSIONS * NParams * sizeof(parametrizations.CofsAtRowOffset[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.NRows), DIMENSIONS * NParams * sizeof(parametrizations.NRows[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.ColsAtRowOffset), DIMENSIONS * NParams * sizeof(parametrizations.ColsAtRowOffset[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.CofsAtRowOffset), DIMENSIONS * NParams * sizeof(parametrizations.CofsAtRowOffset[0]));
 
-  file.read(reinterpret_cast<char *>(&NRows), sizeof(std::int32_t));
+  file.read(reinterpret_cast<char*>(&NRows), sizeof(std::int32_t));
   assert(NRows <= MAX_ROWS);
 
-  file.read(reinterpret_cast<char *>(parametrizations.NColsAtRow), NRows * sizeof(parametrizations.NColsAtRow[0]));
-  file.read(reinterpret_cast<char *>(parametrizations.CofsAtColOffset), NRows * sizeof(parametrizations.CofsAtColOffset[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.NColsAtRow), NRows * sizeof(parametrizations.NColsAtRow[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.CofsAtColOffset), NRows * sizeof(parametrizations.CofsAtColOffset[0]));
 
-  file.read(reinterpret_cast<char *>(&NColumns), sizeof(std::int32_t));
+  file.read(reinterpret_cast<char*>(&NColumns), sizeof(std::int32_t));
   assert(NColumns <= MAX_COLUMNS);
 
-  file.read(reinterpret_cast<char *>(parametrizations.NCofsAtCol), NColumns * sizeof(parametrizations.NCofsAtCol[0]));
-  file.read(reinterpret_cast<char *>(parametrizations.AtColCoefOffset), NColumns * sizeof(parametrizations.AtColCoefOffset[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.NCofsAtCol), NColumns * sizeof(parametrizations.NCofsAtCol[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.AtColCoefOffset), NColumns * sizeof(parametrizations.AtColCoefOffset[0]));
 
-  file.read(reinterpret_cast<char *>(&NCoefficients), sizeof(std::int32_t));
+  file.read(reinterpret_cast<char*>(&NCoefficients), sizeof(std::int32_t));
   assert(NCoefficients <= MAX_COEFFICIENTS);
 
-  file.read(reinterpret_cast<char *>(parametrizations.Coeffs), NCoefficients * sizeof(parametrizations.Coeffs[0]));
+  file.read(reinterpret_cast<char*>(parametrizations.Coeffs), NCoefficients * sizeof(parametrizations.Coeffs[0]));
 
   return std::make_tuple(NParams, NRows, NColumns, NCoefficients);
 }
@@ -142,7 +142,7 @@ int GPUDisplayMagneticField::initializeUniforms()
   const auto [SolSegDim1, SolSegDim2, SolSegDim3] = loadSegments(file, *mSolenoidSegments);
   const auto [DipSegDim1, DipSegDim2, DipSegDim3] = loadSegments(file, *mDipoleSegments);
   const auto [SParams, SRows, SCols, SCoeffs] = loadParams<DIMENSIONS>(file, *mSolenoidParameterization);
-  const auto [DParams, DRows, DCols, DCoeffs] = loadParams<DIMENSIONS>(file,*mDipoleParameterization);
+  const auto [DParams, DRows, DCols, DCoeffs] = loadParams<DIMENSIONS>(file, *mDipoleParameterization);
 
   mSolSegDim1 = SolSegDim1;
   mSolSegDim2 = SolSegDim2;
@@ -184,7 +184,7 @@ int GPUDisplayMagneticField::initializeUniforms()
   return initializeUniformsFromField(field);
 }
 
-int GPUDisplayMagneticField::initializeUniformsFromField(o2::field::MagneticField *field)
+int GPUDisplayMagneticField::initializeUniformsFromField(o2::field::MagneticField* field)
 {
   const auto chebMap = field->getMeasuredMap();
 
@@ -208,14 +208,14 @@ int GPUDisplayMagneticField::initializeUniformsFromField(o2::field::MagneticFiel
     Int_t numberOfDistinctDim1Segments;
     Int_t numberOfDistinctDim2Segments;
     Int_t numberOfDistinctDim3Segments;
-    Float_t *coordinatesSegmentsDim1;
-    Float_t *coordinatesSegmentsDim2;
-    Float_t *coordinatesSegmentsDim3;
-    Int_t *beginningOfSegmentsDim2;
-    Int_t *beginningOfSegmentsDim3;
-    Int_t *numberOfSegmentsDim2;
-    Int_t *numberOfSegmentsDim3;
-    Int_t *segmentId;
+    Float_t* coordinatesSegmentsDim1;
+    Float_t* coordinatesSegmentsDim2;
+    Float_t* coordinatesSegmentsDim3;
+    Int_t* beginningOfSegmentsDim2;
+    Int_t* beginningOfSegmentsDim3;
+    Int_t* numberOfSegmentsDim2;
+    Int_t* numberOfSegmentsDim3;
+    Int_t* segmentId;
 
     ~TableInfo()
     {
@@ -276,7 +276,7 @@ int GPUDisplayMagneticField::initializeUniformsFromField(o2::field::MagneticFiel
         const auto calc = param->getChebyshevCalc(j);
 
         const auto NRows = calc->getNumberOfRows();
-        TotalRows+= NRows;
+        TotalRows += NRows;
 
         const auto colsAtRow = calc->getNumberOfColumnsAtRow();
 
@@ -390,9 +390,9 @@ int GPUDisplayMagneticField::initializeUniformsFromField(o2::field::MagneticFiel
 
         const auto NRows = calc->getNumberOfRows();
 
-        parametrizationUniform->NRows[i*DIMENSIONS + j] = NRows;
-        parametrizationUniform->ColsAtRowOffset[i*DIMENSIONS + j] = ColsAtRowOffset;
-        parametrizationUniform->CofsAtRowOffset[i*DIMENSIONS + j] = CofsAtRowOffset;
+        parametrizationUniform->NRows[i * DIMENSIONS + j] = NRows;
+        parametrizationUniform->ColsAtRowOffset[i * DIMENSIONS + j] = ColsAtRowOffset;
+        parametrizationUniform->CofsAtRowOffset[i * DIMENSIONS + j] = CofsAtRowOffset;
 
         const auto colsAtRow = calc->getNumberOfColumnsAtRow();
 
@@ -404,8 +404,8 @@ int GPUDisplayMagneticField::initializeUniformsFromField(o2::field::MagneticFiel
           const auto col0 = calc->getColAtRowBg()[row];
 
           for (auto col = 0; col < NCols; ++col) {
-            const auto ncoffs = calc->getCoefficientBound2D0()[col0+col];
-            const auto offset = calc->getCoefficientBound2D1()[col0+col];
+            const auto ncoffs = calc->getCoefficientBound2D0()[col0 + col];
+            const auto offset = calc->getCoefficientBound2D1()[col0 + col];
 
             parametrizationUniform->NCofsAtCol[CofsAtColOffset + col] = ncoffs;
             parametrizationUniform->AtColCoefOffset[CofsAtColOffset + col] = offset;

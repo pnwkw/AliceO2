@@ -30,7 +30,7 @@ class GPUDisplayMagneticField
  public:
   GPUDisplayMagneticField();
 #ifdef GPUCA_HAVE_O2HEADERS
-  GPUDisplayMagneticField(o2::field::MagneticField *field);
+  GPUDisplayMagneticField(o2::field::MagneticField* field);
 #endif
 
   static constexpr std::size_t DIMENSIONS = 3;
@@ -55,7 +55,7 @@ class GPUDisplayMagneticField
     float StepSize;
   };
 
-  template<std::size_t MAX_DIM1_SEGMENTS, std::size_t MAX_DIM2_SEGMENTS, std::size_t MAX_DIM3_SEGMENTS>
+  template <std::size_t MAX_DIM1_SEGMENTS, std::size_t MAX_DIM2_SEGMENTS, std::size_t MAX_DIM3_SEGMENTS>
   struct SegmentsUniform {
     float MinZ;
     float MaxZ;
@@ -112,7 +112,7 @@ class GPUDisplayMagneticField
 
   int initializeUniforms();
 #ifdef GPUCA_HAVE_O2HEADERS
-  int initializeUniformsFromField(o2::field::MagneticField *field);
+  int initializeUniformsFromField(o2::field::MagneticField* field);
 #endif
   void generateSeedPoints(std::size_t count);
 

@@ -413,24 +413,24 @@ int GPUDisplayBackendOpenGL::InitMagField()
   CHKERR(glCompileShader(mVertexShaderPassthrough));
 
   const auto constantsExpanded = fmt::format(GPUDisplayShaders::fieldModelShaderConstants,
-                                                fmt::arg("dimensions", GPUDisplayMagneticField::DIMENSIONS),
-                                                fmt::arg("solZSegs", GPUDisplayMagneticField::MAX_SOLENOID_Z_SEGMENTS),
-                                                fmt::arg("solPSegs", GPUDisplayMagneticField::MAX_SOLENOID_P_SEGMENTS),
-                                                fmt::arg("solRSegs", GPUDisplayMagneticField::MAX_SOLENOID_R_SEGMENTS),
-                                                fmt::arg("solParams", GPUDisplayMagneticField::MAX_SOLENOID_PARAMETERIZATIONS),
-                                                fmt::arg("solRows", GPUDisplayMagneticField::MAX_SOLENOID_ROWS),
-                                                fmt::arg("solColumns", GPUDisplayMagneticField::MAX_SOLENOID_COLUMNS),
-                                                fmt::arg("solCoeffs", GPUDisplayMagneticField::MAX_SOLENOID_COEFFICIENTS),
-                                                fmt::arg("dipZSegs", GPUDisplayMagneticField::MAX_DIPOLE_Z_SEGMENTS),
-                                                fmt::arg("dipYSegs", GPUDisplayMagneticField::MAX_DIPOLE_Y_SEGMENTS),
-                                                fmt::arg("dipXSegs", GPUDisplayMagneticField::MAX_DIPOLE_X_SEGMENTS),
-                                                fmt::arg("dipParams", GPUDisplayMagneticField::MAX_DIPOLE_PARAMETERIZATIONS),
-                                                fmt::arg("dipRows", GPUDisplayMagneticField::MAX_DIPOLE_ROWS),
-                                                fmt::arg("dipColumns", GPUDisplayMagneticField::MAX_DIPOLE_COLUMNS),
-                                                fmt::arg("dipCoeffs", GPUDisplayMagneticField::MAX_DIPOLE_COEFFICIENTS),
-                                                fmt::arg("maxChebOrder", GPUDisplayMagneticField::MAX_CHEBYSHEV_ORDER));
+                                             fmt::arg("dimensions", GPUDisplayMagneticField::DIMENSIONS),
+                                             fmt::arg("solZSegs", GPUDisplayMagneticField::MAX_SOLENOID_Z_SEGMENTS),
+                                             fmt::arg("solPSegs", GPUDisplayMagneticField::MAX_SOLENOID_P_SEGMENTS),
+                                             fmt::arg("solRSegs", GPUDisplayMagneticField::MAX_SOLENOID_R_SEGMENTS),
+                                             fmt::arg("solParams", GPUDisplayMagneticField::MAX_SOLENOID_PARAMETERIZATIONS),
+                                             fmt::arg("solRows", GPUDisplayMagneticField::MAX_SOLENOID_ROWS),
+                                             fmt::arg("solColumns", GPUDisplayMagneticField::MAX_SOLENOID_COLUMNS),
+                                             fmt::arg("solCoeffs", GPUDisplayMagneticField::MAX_SOLENOID_COEFFICIENTS),
+                                             fmt::arg("dipZSegs", GPUDisplayMagneticField::MAX_DIPOLE_Z_SEGMENTS),
+                                             fmt::arg("dipYSegs", GPUDisplayMagneticField::MAX_DIPOLE_Y_SEGMENTS),
+                                             fmt::arg("dipXSegs", GPUDisplayMagneticField::MAX_DIPOLE_X_SEGMENTS),
+                                             fmt::arg("dipParams", GPUDisplayMagneticField::MAX_DIPOLE_PARAMETERIZATIONS),
+                                             fmt::arg("dipRows", GPUDisplayMagneticField::MAX_DIPOLE_ROWS),
+                                             fmt::arg("dipColumns", GPUDisplayMagneticField::MAX_DIPOLE_COLUMNS),
+                                             fmt::arg("dipCoeffs", GPUDisplayMagneticField::MAX_DIPOLE_COEFFICIENTS),
+                                             fmt::arg("maxChebOrder", GPUDisplayMagneticField::MAX_CHEBYSHEV_ORDER));
 
-  std::array geomShaderSource = { GPUDisplayShaders::geometryShaderP1, constantsExpanded.c_str(), GPUDisplayShaders::fieldModelShaderCode, GPUDisplayShaders::geometryShaderP2 };
+  std::array geomShaderSource = {GPUDisplayShaders::geometryShaderP1, constantsExpanded.c_str(), GPUDisplayShaders::fieldModelShaderCode, GPUDisplayShaders::geometryShaderP2};
 
   CHKERR(glShaderSource(mGeometryShader, geomShaderSource.size(), geomShaderSource.data(), nullptr));
   CHKERR(glCompileShader(mGeometryShader));
