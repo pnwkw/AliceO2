@@ -189,7 +189,10 @@ void GPUDisplayBackendOpenGL::ExitMagField()
 }
 
 #else  // GPUCA_BUILD_EVENT_DISPLAY_OPENGL
-int GPUDisplayBackendOpenGL::InitMagField() { return 0; }
+int GPUDisplayBackendOpenGL::InitMagField()
+{
+  return 0;
+}
 unsigned int GPUDisplayBackendOpenGL::drawField() { return 0; }
 void GPUDisplayBackendOpenGL::ExitMagField() {}
 #endif // GPUCA_BUILD_EVENT_DISPLAY_OPENGL

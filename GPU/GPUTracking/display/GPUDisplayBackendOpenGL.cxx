@@ -818,7 +818,9 @@ void GPUDisplayBackendOpenGL::updateRenderer(bool withScreenshot)
 }
 
 #else  // GPUCA_BUILD_EVENT_DISPLAY_OPENGL
-GPUDisplayBackendOpenGL::GPUDisplayBackendOpenGL() {}
+GPUDisplayBackendOpenGL::GPUDisplayBackendOpenGL()
+{
+}
 int GPUDisplayBackendOpenGL::checkShaderStatus(unsigned int shader) { return 0; }
 int GPUDisplayBackendOpenGL::checkProgramStatus(unsigned int program) { return 0; }
 int GPUDisplayBackendOpenGL::ExtInit() { throw std::runtime_error("Insufficnet OpenGL version"); }
