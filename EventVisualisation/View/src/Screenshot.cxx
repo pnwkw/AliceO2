@@ -164,8 +164,8 @@ void Screenshot::perform(o2::detectors::DetID::mask_t detectorsMask, int runNumb
     delete scaledImage;
   }
 
-  TImage* viewZrhoImage = MultiView::getInstance()->getView(MultiView::EViews::ViewZrho)->GetGLViewer()->GetPictureUsingBB();
-  scaledImage = ScaleImage((TASImage*)viewZrhoImage, width * 0.3, height * 0.45);
+  TImage* viewZYImage = MultiView::getInstance()->getView(MultiView::EViews::ViewZY)->GetGLViewer()->GetPictureUsingBB();
+  scaledImage = ScaleImage((TASImage*)viewZYImage, width * 0.3, height * 0.45);
   if (scaledImage) {
     CopyImage(&image, scaledImage, width * 0.68, height * 0.525, 0, 0, scaledImage->GetWidth(), scaledImage->GetHeight());
     delete scaledImage;
