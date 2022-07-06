@@ -44,7 +44,7 @@ class MultiView
   enum EViews {
     View3d,       ///< 3D view
     ViewRphi,     ///< R-Phi view
-    ViewZY,     ///< Z-Y view
+    ViewZY,       ///< Z-Y view
     NumberOfViews ///< Total number of views
   };
 
@@ -52,14 +52,14 @@ class MultiView
     Scene3dGeom,    ///< 3D scene of geometry
     Scene3dEvent,   ///< 3D scene of event
     SceneRphiGeom,  ///< R-Phi scene of geometry
-    SceneZYGeom,  ///< Z-Y scene of geometry
+    SceneZYGeom,    ///< Z-Y scene of geometry
     SceneRphiEvent, ///< R-Phi scene of event
-    SceneZYEvent, ///< Z-Y scene of event
+    SceneZYEvent,   ///< Z-Y scene of event
     NumberOfScenes  ///< Total number of scenes
   };
   enum EProjections {
     ProjectionRphi,     ///< R-Phi projection
-    ProjectionZY,     ///< Z-Y projection
+    ProjectionZY,       ///< Z-Y projection
     NumberOfProjections ///< Total number of projections
   };
 
