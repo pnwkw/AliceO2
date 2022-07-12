@@ -382,12 +382,12 @@ void EventManager::saveVisualisationSettings()
   if (settings.good()) {
     Document d;
     d.SetObject();
-    auto &allocator = d.GetAllocator();
+    auto& allocator = d.GetAllocator();
 
-    auto jsonArray = [](const auto &array, auto &allocator) {
+    auto jsonArray = [](const auto& array, auto& allocator) {
       Value arr(kArrayType);
 
-      for (const auto &value : array) {
+      for (const auto& value : array) {
         arr.PushBack(value, allocator);
       }
 
@@ -403,10 +403,10 @@ void EventManager::saveVisualisationSettings()
     d.AddMember("clusterStyle", jsonArray(vizSettings.clusterStyle, allocator), allocator);
     d.AddMember("clusterSize", jsonArray(vizSettings.clusterSize, allocator), allocator);
 
-    auto jsonCamera = [&jsonArray](MultiView::EViews view, auto &allocator) {
+    auto jsonCamera = [&jsonArray](MultiView::EViews view, auto& allocator) {
       Value obj(kObjectType);
 
-      auto &camera = MultiView::getInstance()->getView(view)->GetGLViewer()->CurrentCamera();
+      auto& camera = MultiView::getInstance()->getView(view)->GetGLViewer()->CurrentCamera();
 
       const gsl::span baseSpan(camera.RefCamBase().CArr(), 16);
       obj.AddMember("base", jsonArray(baseSpan, allocator), allocator);
@@ -444,15 +444,15 @@ void EventManager::restoreVisualisationSettings()
     Document d;
     d.Parse(json.c_str());
 
-    auto updateArray = [](auto &array, const auto &document, const char *name, const auto &accessor) {
+    auto updateArray = [](auto& array, const auto& document, const char* name, const auto& accessor) {
       for (size_t i = 0; i < elemof(array); ++i) {
         array[i] = accessor(document[name][i]);
       }
     };
 
-    auto getBool = [](const GenericValue<UTF8<char>> &v) { return v.GetBool(); };
-    auto getUint = [](const GenericValue<UTF8<char>> &v) { return v.GetUint(); };
-    auto getFloat = [](const GenericValue<UTF8<char>> &v) { return v.GetFloat(); };
+    auto getBool = [](const GenericValue<UTF8<char>>& v) { return v.GetBool(); };
+    auto getUint = [](const GenericValue<UTF8<char>>& v) { return v.GetUint(); };
+    auto getFloat = [](const GenericValue<UTF8<char>>& v) { return v.GetFloat(); };
 
     updateArray(vizSettings.trackVisibility, d, "trackVisibility", getBool);
     updateArray(vizSettings.trackColor, d, "trackColor", getUint);
@@ -463,8 +463,8 @@ void EventManager::restoreVisualisationSettings()
     updateArray(vizSettings.clusterStyle, d, "clusterStyle", getUint);
     updateArray(vizSettings.clusterSize, d, "clusterSize", getFloat);
 
-    auto updateCamera = [getFloat](MultiView::EViews view, const auto &document, const char *name) {
-      auto &camera = MultiView::getInstance()->getView(view)->GetGLViewer()->CurrentCamera();
+    auto updateCamera = [getFloat](MultiView::EViews view, const auto& document, const char* name) {
+      auto& camera = MultiView::getInstance()->getView(view)->GetGLViewer()->CurrentCamera();
 
       std::array<Double_t, 16> values;
 
