@@ -184,7 +184,7 @@ void EveWorkflowHelper::selectTracks(const CalibObjectsConst* calib,
   };
 
   // MFT-MCH-MID tracks are labeled as MFT-MCH in the reco container
-  auto fixMFTMCHMIDLabel = [this](GID &gid) {
+  auto fixMFTMCHMIDLabel = [this](GID& gid) {
     if (gid.getSource() == GID::MFTMCH) {
       const auto& trFwd = mRecoCont->getGlobalFwdTrack(gid);
       if (trFwd.getMIDTrackID() != -1) {
