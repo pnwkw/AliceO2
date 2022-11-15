@@ -589,7 +589,7 @@ void EveWorkflowHelper::drawPHS(GID gid)
       energy = 0.005f * cell.getEnergy(); // ~0.005 GeV / ADC
     } else if (cell.getLowGain()) {
       energy = 0.080f * cell.getEnergy(); // ~0.080 MeV / ADC
-    } else { // a trigger cell
+    } else {                              // a trigger cell
       return;
     }
 
